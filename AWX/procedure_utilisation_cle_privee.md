@@ -1,4 +1,4 @@
-# Solution pour utiliser une clé privée dans AWX
+# Solution pour utiliser une clé privée unique par hote dans AWX
 
 <!-- vscode-markdown-toc -->
 * 1. [Objectif de la documentation](#Objectifdeladocumentation)
@@ -17,15 +17,19 @@
 <br><br>
 
 ##  1. <a name='Objectifdeladocumentation'></a>Objectif de la documentation
-Le but de cette documentation est de décrire le mode opératoire afin de mettre en place l'authentification par clé SSH unique par machine pour AWX. Ces clés seront stockées dans un Hashicorp Vault. Cet Hashicorp Vault sera interconnecté avec un AWX.
+Le but de cette documentation est de décrire le mode opératoire afin de mettre en place l'authentification par clé SSH **unique par machine** pour AWX. Ces clés seront stockées dans un Hashicorp Vault. Cet Hashicorp Vault sera interconnecté avec un AWX.
+<br><br>
+
+## Problématiques
+La solution proposée a été étudiée avec un consultant Red Hat afin de contourner les limitations d'AWX.
+1. Il n'est pas possible d'attacher un HashiCorp Vault Signed SSH ou un HashiCorp Vault Secret Lookup à un template.
+2. Il est en revanche possible de créer un credential de type machine en appelant un credential de type HashiCorp Vault Secret Lookup. Le credential créé de type machine peut lui être lié à un template. Cependant, il n'est pas possible d'utiliser une variable dans cet appel comme en témoigne cette demande d'évolution toujours en attente: https://github.com/ansible/awx/issues/11121
 <br><br>
 
 ##  2. <a name='StockagedelacldansVault'></a>Stockage de la clé dans Vault
 1. Sur un serveur, générer une paire de clé
 2. Déclarer la clé publique sur le serveur à gérer dans le fichier .ssh/authorized_keys
-3. Coller la clé privée dans Vault. Dans notre exemple, dans l'arborescence suivante:
-automation_stack1/{{ inventory_hostname }}
-dans la clé private_key
+3. Coller la clé privée dans Vault. Dans notre exemple, dans l'arborescence suivante: ``automation_stack1/{{ inventory_hostname }}`` dans la clé private_key.
 <br><br>
 
 ##  3. <a name='Crationduplaybook'></a>Création du playbook
